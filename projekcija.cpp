@@ -52,10 +52,12 @@ unesi_tacke(void){
     return std::make_pair(tacke, slike);
 }
 
-Eigen::MatrixXd naivni(void){
+Eigen::MatrixXd naivni(std::vector<std::vector<double>> tacke, std::vector<std::vector<double>> slike){
     
+    /*
     double x;
     std::vector<double> tmp;
+    
     
     std::vector<std::vector<double>> tacke;
     
@@ -70,7 +72,7 @@ Eigen::MatrixXd naivni(void){
             tmp.clear();            
         }        
     }
-    
+    */
    
     Eigen::MatrixXd delta;
     delta.resize(3,3);
@@ -118,7 +120,9 @@ Eigen::MatrixXd naivni(void){
     Eigen::MatrixXd p1_i = p1.inverse();
   
     
-    std::vector<std::vector<double>> tacke2;
+    /*
+    std::vector<std::vector<double>> slike;
+    
     
     std::cout << "Unos slika tacaka: " << std::endl;    
     for(int i=1; i<=12; i++){
@@ -127,26 +131,27 @@ Eigen::MatrixXd naivni(void){
         tmp.push_back(x);
         
         if(i%3 == 0){
-            tacke2.push_back(tmp);
+            slike.push_back(tmp);
             tmp.clear();            
         }        
     }
+    */
     
-    delta << tacke2[0][0], tacke2[1][0], tacke2[2][0],
-             tacke2[0][1], tacke2[1][1], tacke2[2][1],
-             tacke2[0][2], tacke2[1][2], tacke2[2][2];
+    delta << slike[0][0], slike[1][0], slike[2][0],
+             slike[0][1], slike[1][1], slike[2][1],
+             slike[0][2], slike[1][2], slike[2][2];
              
-    delta1 << tacke2[3][0], tacke2[1][0], tacke2[2][0],
-              tacke2[3][1], tacke2[1][1], tacke2[2][1],
-              tacke2[3][2], tacke2[1][2], tacke2[2][2];
+    delta1 << slike[3][0], slike[1][0], slike[2][0],
+              slike[3][1], slike[1][1], slike[2][1],
+              slike[3][2], slike[1][2], slike[2][2];
               
-    delta2 << tacke2[0][0], tacke2[3][0], tacke2[2][0],
-              tacke2[0][1], tacke2[3][1], tacke2[2][1],
-              tacke2[0][2], tacke2[3][2], tacke2[2][2];
+    delta2 << slike[0][0], slike[3][0], slike[2][0],
+              slike[0][1], slike[3][1], slike[2][1],
+              slike[0][2], slike[3][2], slike[2][2];
               
-    delta3 << tacke2[0][0], tacke2[1][0], tacke2[3][0],
-              tacke2[0][1], tacke2[1][1], tacke2[3][1],
-              tacke2[0][2], tacke2[1][2], tacke2[3][2];
+    delta3 << slike[0][0], slike[1][0], slike[3][0],
+              slike[0][1], slike[1][1], slike[3][1],
+              slike[0][2], slike[1][2], slike[3][2];
     
     d  = delta.determinant();
     d1 = delta1.determinant();
@@ -162,9 +167,9 @@ Eigen::MatrixXd naivni(void){
     Eigen::MatrixXd p2;
     p2.resize(3,3);
         
-    p2 << tacke2[0][0]*l1, tacke2[1][0]*l2, tacke2[2][0]*l3, 
-          tacke2[0][1]*l1, tacke2[1][1]*l2, tacke2[2][1]*l3,
-          tacke2[0][2]*l1, tacke2[1][2]*l2, tacke2[2][2]*l3;
+    p2 << slike[0][0]*l1, slike[1][0]*l2, slike[2][0]*l3, 
+          slike[0][1]*l1, slike[1][1]*l2, slike[2][1]*l3,
+          slike[0][2]*l1, slike[1][2]*l2, slike[2][2]*l3;
     
     Eigen::MatrixXd g;
     g = p2*p1_i;
@@ -193,13 +198,14 @@ Eigen::MatrixXd DLT(std::vector<std::vector<double>> tacke, std::vector<std::vec
     }
     
     
-    std::cout << std::endl << "Matrica A: \n" << A << std::endl << std::endl;
+    std::cout << std::endl << "Matrica A: \n" << A << std::endl << std::endl;                
+        
     
-    
-    
-    Eigen::JacobiSVD<Eigen::MatrixXd> s(A, Eigen::ComputeFullV | Eigen::ComputeFullU );     
-    //s.computeV();
-    Eigen::MatrixXd V = s.matrixV();
+    Eigen::BDCSVD<Eigen::MatrixXd> s(A, Eigen::ComputeFullU | Eigen::ComputeFullV );     
+   
+    Eigen::MatrixXd V;
+    V.resize(9,9);
+    V = s.matrixV();
     std::cout << "Matrica V: \n" << V << std::endl << std::endl;
     
     
@@ -213,6 +219,8 @@ Eigen::MatrixXd DLT(std::vector<std::vector<double>> tacke, std::vector<std::vec
     
     return P;
 }
+
+
 
 std::vector<std::vector<double>> toAfine(std::vector<std::vector<double>> t){
     
@@ -403,7 +411,7 @@ void ispravi_distorziju(){
             break;
             
         case 4:
-            img.assign("ulazne_slike/crtez1.jpg");
+            img.assign("ulazne_slike/crtez1.bmp");
             break;
             
         case 5:
@@ -423,9 +431,10 @@ void ispravi_distorziju(){
     double ratio = floor(w/h);
     
     //cetvrtu sliku necemo da resize-ujemo: nece lepo da je skalira iz nekog razloga
-    if(odabir_sike != 4)
+    if(odabir_sike != 4 && odabir_sike != 5)
         img.resize(900, 900/ratio);
-    
+    else
+        img.resize(800, 600);
     
     cimg_library::CImgDisplay display1 (img, "Odaberite tacke klikom na sliku i pritisnite ENTER!");
     
@@ -525,7 +534,9 @@ void ispravi_distorziju(){
     Eigen::MatrixXd P;
     P.resize(3,3);
     
+    
     P = DLT_norm(odabrane_tacke_H, slike_tacaka_H);
+    
     
     Eigen::MatrixXd Pinv;
     Pinv.resize(3,3);
@@ -546,7 +557,7 @@ void ispravi_distorziju(){
     Eigen::MatrixXd px_slika;
     px_slika.resize(3,1);
     
-    int xo, yo;
+    int xo, yo, x1, y1;
     
     for(int x=0; x<width; x++){
         for(int y=0; y<height; y++){
@@ -557,8 +568,13 @@ void ispravi_distorziju(){
             
             
             if(px_slika(2,0) != 0){
+                
                 xo = floor(px_slika(0,0)/px_slika(2,0));
                 yo = floor(px_slika(1,0)/px_slika(2,0));
+                
+                x1 = ceil(px_slika(0,0)/px_slika(2,0));
+                y1 = ceil(px_slika(1,0)/px_slika(2,0));
+                
             }
             else
                 continue;
@@ -567,23 +583,25 @@ void ispravi_distorziju(){
             
             if( xo < 0 || xo > width || yo < 0 || yo > height )
                 continue;
-            else{
+            
+            if( x1 < 0 || x1 > width || y1 < 0 || y1 > height )
+                continue;        
                 
-                img2(x,y,0,0) = (int)img(xo, yo, 0, 0);
-                img2(x,y,0,1) = (int)img(xo, yo, 0, 1);
-                img2(x,y,0,2) = (int)img(xo, yo, 0, 2);
-            }
+            
+            img2(x,y,0,0) = (int)img(xo, yo, 0, 0);
+            img2(x,y,0,1) = (int)img(xo, yo, 0, 1);
+            img2(x,y,0,2) = (int)img(xo, yo, 0, 2);
+            
+            img2(x,y,0,0) = (int)img(x1, y1, 0, 0);
+            img2(x,y,0,1) = (int)img(x1, y1, 0, 1);
+            img2(x,y,0,2) = (int)img(x1, y1, 0, 2);
+            
             
         }
     }
     
     
-    
-    
-    
-    
-    
-    
+       
     
     cimg_library::CImgList<unsigned char> lista_slika (img, img2);
     
@@ -612,15 +630,21 @@ int main(){
         std::cout << std::endl << std::endl;
         
         if(odgovor == 1){
-        
+            
+            
+            
+            
             std::cout << "******************* NAIVNI **********************" << std::endl << std::endl;
             
-            Eigen::MatrixXd P = naivni();
+            auto u1 = unesi_tacke();
+            Eigen::MatrixXd P = naivni(u1.first, u1.second);
             std::cout << "Matrica projekcije (naivni): \n" << P << std::endl;
             
             std::cout << "*************************************************" << std::endl << std::endl;
             
-                    
+            
+            
+                                
             std::cout << "******************** DLT ************************" << std::endl << std::endl;
             
             auto u = unesi_tacke();
@@ -630,23 +654,27 @@ int main(){
             std::cout << "Matrica projekcije (DLT): \n" << D << std::endl << std::endl;
             
             //WARNING: Ako je D(0,0) = 0 javice gresku zbog deljenja nulom
-            Eigen::MatrixXd PR = (D/D(0,0))*P(0,0);
+            Eigen::MatrixXd PR = D * P(0,1) / D(0,1);
             std::cout << "Provera (DLT->naivni): \n" << PR << std::endl;
             
             std::cout << std::endl <<"*************************************************" << std::endl << std::endl;
             
 
             
+            
+            
             std::cout << "******************** DLT_NORM ************************" << std::endl << std::endl;
             
             auto unos = unesi_tacke();
             Eigen::MatrixXd M = DLT_norm(unos.first, unos.second);    
-            Eigen::MatrixXd PM = (M/M(0,0))*P(0,0);    
+            Eigen::MatrixXd PM = (M/M(0,1))*P(0,1);    
             std::cout << "Matrica projekcije (naivni): \n" << P << std::endl << std::endl;    
             std::cout << "Matrica projekcije (DLT_norm): \n" << M << std::endl << std::endl;
             std::cout << "Provera (DLT_norm->naivni): \n" << PM << std::endl << std::endl;
             
             std::cout << "******************************************************" << std::endl << std::endl;
+            
+            
             
             break;
         }
